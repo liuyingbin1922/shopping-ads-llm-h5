@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Pagination, Navigation } from 'swiper/modules'
 import { apiService, Product } from '../services/api'
+import { analyticsService } from '../services/analytics'
 import { cn } from '../utils/cn'
 import 'swiper/css'
 import 'swiper/css/pagination'
@@ -29,6 +30,14 @@ export default function ProductDetailPage() {
       setError(null)
       const data = await apiService.getProduct(productId)
       setProduct(data)
+      
+      // Track product view
+      await analyticsService.trackProductView({
+        id: data.id,
+        name: data.name,
+        price: data.price,
+        category: data.category,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch product')
       console.error('Error fetching product:', err)
@@ -84,8 +93,6 @@ export default function ProductDetailPage() {
     )
   }
 
-  // For now, no discount calculation since backend doesn't provide originalPrice
-  const discountPercentage = 0
 
   return (
     <div className="bg-white min-h-screen">
@@ -218,10 +225,44 @@ export default function ProductDetailPage() {
 
         {/* Action Buttons */}
         <div className="flex space-x-3 pt-4">
-          <button className="flex-1 btn-primary py-3">
+          <button 
+            onClick={async () => {
+              if (product) {
+                await analyticsService.trackAddToCart({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  category: product.category,
+                })
+                // Add to cart logic here
+                console.log('Adding to cart:', product.name, 'quantity:', quantity)
+              }
+            }}
+            className="flex-1 btn-primary py-3"
+          >
             Add to Cart
           </button>
-          <button className="flex-1 btn-secondary py-3">
+          <button 
+            onClick={async () => {
+              if (product) {
+                await analyticsService.track({
+                  event_type: 'purchase_intent',
+                  event_name: 'buy_now_clicked',
+                  page_url: window.location.href,
+                  properties: {
+                    product_id: product.id,
+                    product_name: product.name,
+                    product_price: product.price,
+                    product_category: product.category,
+                    quantity: quantity,
+                  },
+                })
+                // Buy now logic here
+                console.log('Buy now:', product.name, 'quantity:', quantity)
+              }
+            }}
+            className="flex-1 btn-secondary py-3"
+          >
             Buy Now
           </button>
         </div>

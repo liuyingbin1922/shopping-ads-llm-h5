@@ -11,12 +11,13 @@
     "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix"
   },
   "dependencies": {
+    "@segment/analytics-next": "^1.81.1",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1",
     "swiper": "^10.0.4",
-    "lucide-react": "^0.263.1",
-    "clsx": "^2.0.0",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
@@ -33,7 +34,12 @@
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
   },
-  "keywords": ["e-commerce", "h5", "react", "mobile"],
+  "keywords": [
+    "e-commerce",
+    "h5",
+    "react",
+    "mobile"
+  ],
   "author": "",
   "license": "MIT"
 }

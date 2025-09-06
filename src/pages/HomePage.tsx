@@ -1,13 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import BannerCarousel from '../components/BannerCarousel'
 import CategoryGrid from '../components/CategoryGrid'
 import ProductCard from '../components/ProductCard'
 import { banners, categories } from '../data/mockData'
 import { useProducts } from '../hooks/useProducts'
+import { analyticsService } from '../services/analytics'
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const { products, loading, error, getProductsByCategory, getFeaturedProducts, getNewArrivals } = useProducts()
+
+  // Track page view on component mount
+  useEffect(() => {
+    analyticsService.trackPageView('homepage', {
+      total_products: products.length,
+      categories_count: categories.length,
+    })
+  }, [products.length])
 
   const filteredProducts = selectedCategory === 'all' 
     ? products 
@@ -17,6 +26,17 @@ export default function HomePage() {
   const newArrivals = getNewArrivals()
   // For now, no on-sale products since backend doesn't provide originalPrice
   const onSaleProducts: any[] = []
+
+  // Handle category filter change with analytics
+  const handleCategoryChange = async (category: string) => {
+    setSelectedCategory(category)
+    
+    // Track category filter usage
+    if (category !== 'all') {
+      const categoryProducts = getProductsByCategory(category)
+      await analyticsService.trackCategoryView(category, categoryProducts.length)
+    }
+  }
 
   // Show loading state
   if (loading) {
@@ -103,7 +123,7 @@ export default function HomePage() {
         {/* Category Filter */}
         <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
           <button
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => handleCategoryChange('all')}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
               selectedCategory === 'all'
                 ? 'bg-primary-500 text-white'
@@ -115,7 +135,7 @@ export default function HomePage() {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.name)}
+              onClick={() => handleCategoryChange(category.name)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
                 selectedCategory === category.name
                   ? 'bg-primary-500 text-white'

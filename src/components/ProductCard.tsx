@@ -1,7 +1,7 @@
 import { Product } from '../services/api'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '../utils/cn'
-
+import { analyticsService } from '../services/analytics'
 interface ProductCardProps {
   product: Product
   className?: string
@@ -13,9 +13,39 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   // For now, no discount calculation since backend doesn't provide originalPrice
   const discountPercentage = 0
 
+  // Handle product card click with analytics
+  const handleProductClick = async () => {
+    // Track product card click
+    await analyticsService.trackProductCardClick({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category: product.category,
+    })
+    
+    // Navigate to product detail page
+    navigate(`/product/${product.id}`)
+  }
+
+  // Handle add to cart with analytics
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    // Track add to cart event
+    await analyticsService.trackAddToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category: product.category,
+    })
+    
+    // Add to cart logic here
+    console.log('Adding to cart:', product.name)
+  }
+
   return (
     <div 
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={handleProductClick}
       className={cn(
         "card cursor-pointer hover:shadow-md transition-shadow duration-200",
         className
@@ -74,10 +104,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
           </div>
           
           <button 
-            onClick={(e) => {
-              e.stopPropagation()
-              // Add to cart logic here
-            }}
+            onClick={handleAddToCart}
             className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
